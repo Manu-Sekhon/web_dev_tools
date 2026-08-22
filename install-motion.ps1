@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Automates installation of Framer Motion and Lucide React icons in a Next.js project.
+    Automates full installation of Next.js dependencies, Framer Motion, and Lucide React icons.
 .DESCRIPTION
-    Detects the current package manager (pnpm, yarn, bun, or npm), verifies package.json,
-    and installs framer-motion and lucide-react along with standard UI utilities (clsx, tailwind-merge).
+    Detects the active package manager (pnpm, yarn, bun, or npm), installs all project dependencies,
+    ensures framer-motion and lucide-react are installed, and configures the cn() helper utility.
 #>
 
 [CmdletBinding()]
@@ -48,27 +48,32 @@ try {
     # 2. Detect Package Manager
     Write-Step "Detecting package manager..."
     $pkgManager = "npm"
-    $installCmd = "install"
+    $addCmd = "install"
 
-    if (Test-Path "pnpm-lock.yaml") {
-        $pkgManager = "pnpm"
-        $installCmd = "add"
-    } elseif (Test-Path "yarn.lock") {
-        $pkgManager = "yarn"
-        $installCmd = "add"
-    } elseif ((Test-Path "bun.lockb") -or (Test-Path "bun.lock")) {
-        $pkgManager = "bun"
-        $installCmd = "add"
-    } elseif (Test-Path "package-lock.json") {
-        $pkgManager = "npm"
-        $installCmd = "install"
-    } else {
-        Write-Warn "No lockfile detected. Defaulting to npm."
+    if (Get-Command "pnpm" -ErrorAction SilentlyContinue) {
+        if (Test-Path "pnpm-lock.yaml") { $pkgManager = "pnpm"; $addCmd = "add" }
+    }
+    if (Get-Command "yarn" -ErrorAction SilentlyContinue) {
+        if (Test-Path "yarn.lock") { $pkgManager = "yarn"; $addCmd = "add" }
+    }
+    if (Get-Command "bun" -ErrorAction SilentlyContinue) {
+        if ((Test-Path "bun.lockb") -or (Test-Path "bun.lock")) { $pkgManager = "bun"; $addCmd = "add" }
     }
 
     Write-Success "Using package manager: $pkgManager"
 
-    # 3. Packages to install
+    # 3. Ensure base project dependencies are installed if node_modules is missing
+    if (-not (Test-Path "node_modules")) {
+        Write-Step "node_modules missing. Installing base project dependencies..."
+        & $pkgManager install
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warn "Base install returned a non-zero code. Proceeding with package installation..."
+        } else {
+            Write-Success "Base dependencies installed."
+        }
+    }
+
+    # 4. Packages to install
     $packages = @(
         "framer-motion",
         "lucide-react",
@@ -76,9 +81,9 @@ try {
         "tailwind-merge"
     )
 
-    Write-Step "Installing dependencies: $($packages -join ', ')..."
+    Write-Step "Installing motion & icon dependencies: $($packages -join ', ')..."
 
-    $argsList = @($installCmd) + $packages
+    $argsList = @($addCmd) + $packages
     if ($pkgManager -eq "npm" -and $Force) {
         $argsList += "--legacy-peer-deps"
     }
@@ -92,7 +97,7 @@ try {
 
     Write-Success "Dependencies successfully installed!"
 
-    # 4. Check / Suggest cn helper for Tailwind CSS
+    # 5. Check / Setup cn helper for Tailwind CSS
     $libUtilsPath = "src/lib/utils.ts"
     $libUtilsAlt = "lib/utils.ts"
 
@@ -117,7 +122,7 @@ export function cn(...inputs: ClassValue[]) {
         Write-Success "Created $targetFile with 'cn()' helper."
     }
 
-    Write-Host "`nAll set! You can now import 'framer-motion' and 'lucide-react' in your Next.js components." -ForegroundColor Green
+    Write-Host "`nAll set! You can now run 'npm run dev' and use Framer Motion & Lucide icons." -ForegroundColor Green
 } catch {
     Write-Err "An error occurred during installation: $_"
     exit 1

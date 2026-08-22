@@ -49,13 +49,23 @@ A modern, responsive Bento Grid UI built with Next.js (App Router), Tailwind CSS
 
 ## 🚀 Quick Start
 
-### 1. Automated Setup (PowerShell)
-Run the included setup script to install Framer Motion and Lucide React icons:
+### 1. Automated Setup
+
+**Option A: Run with PowerShell (Windows)**
 ```powershell
-.\install-motion.ps1
+powershell -ExecutionPolicy Bypass -File .\install-motion.ps1
+```
+*Or via npm script:*
+```bash
+npm run setup
 ```
 
-### 2. Manual Installation
+**Option B: Run with Bash (macOS / Linux / Git Bash)**
+```bash
+bash install-motion.sh
+```
+
+### 2. Standard Installation
 ```bash
 npm install
 ```
