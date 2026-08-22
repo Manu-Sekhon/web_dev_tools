@@ -2,8 +2,8 @@
 .SYNOPSIS
     Automates full installation of Next.js dependencies, Framer Motion, and Lucide React icons.
 .DESCRIPTION
-    Detects the active package manager (pnpm, yarn, bun, or npm), installs all project dependencies,
-    ensures framer-motion and lucide-react are installed, and configures the cn() helper utility.
+    Detects the active package manager (pnpm, yarn, bun, or npm), discovers Node.js / npm even if
+    not in PATH, installs all dependencies, and configures the cn() helper utility.
 #>
 
 [CmdletBinding()]
@@ -33,6 +33,37 @@ function Write-Err {
     Write-Host "[ERROR] $Message" -ForegroundColor Red
 }
 
+function Ensure-NodePath {
+    # Check if npm or node is already reachable
+    if (Get-Command "npm" -ErrorAction SilentlyContinue) {
+        return
+    }
+
+    # Search common Node.js install paths on Windows
+    $candidatePaths = @(
+        "C:\Program Files\nodejs",
+        "C:\Program Files (x86)\nodejs",
+        "$env:LOCALAPPDATA\Programs\node",
+        "$env:LOCALAPPDATA\Programs\nodejs",
+        "$env:APPDATA\npm",
+        "$env:LOCALAPPDATA\fnm_multishells\*",
+        "$env:LOCALAPPDATA\Volta\bin",
+        "$env:APPDATA\nvm\*"
+    )
+
+    foreach ($pathPattern in $candidatePaths) {
+        $matched = Get-Item $pathPattern -ErrorAction SilentlyContinue
+        foreach ($item in $matched) {
+            $testExe = Join-Path $item.FullName "npm.cmd"
+            if (Test-Path $testExe) {
+                Write-Warn "Found Node.js at $($item.FullName). Adding to PATH for this session..."
+                $env:Path = "$($item.FullName);$env:Path"
+                return
+            }
+        }
+    }
+}
+
 try {
     Write-Host "==========================================" -ForegroundColor Magenta
     Write-Host "  Next.js Animation & Icon Setup Script   " -ForegroundColor Magenta
@@ -40,26 +71,42 @@ try {
 
     # 1. Verify package.json exists
     if (-not (Test-Path "package.json")) {
-        Write-Err "package.json not found in the current directory: $(Get-Location)"
+        Write-Err "package.json not found in $(Get-Location)"
         Write-Host "Please run this script from the root of your Next.js project." -ForegroundColor Yellow
         exit 1
     }
 
-    # 2. Detect Package Manager
-    Write-Step "Detecting package manager..."
-    $pkgManager = "npm"
+    # 2. Check Node.js / Package Manager availability
+    Ensure-NodePath
+
+    $pkgManager = $null
     $addCmd = "install"
 
     if (Get-Command "pnpm" -ErrorAction SilentlyContinue) {
         if (Test-Path "pnpm-lock.yaml") { $pkgManager = "pnpm"; $addCmd = "add" }
     }
-    if (Get-Command "yarn" -ErrorAction SilentlyContinue) {
+    if (-not $pkgManager -and (Get-Command "yarn" -ErrorAction SilentlyContinue)) {
         if (Test-Path "yarn.lock") { $pkgManager = "yarn"; $addCmd = "add" }
     }
-    if (Get-Command "bun" -ErrorAction SilentlyContinue) {
+    if (-not $pkgManager -and (Get-Command "bun" -ErrorAction SilentlyContinue)) {
         if ((Test-Path "bun.lockb") -or (Test-Path "bun.lock")) { $pkgManager = "bun"; $addCmd = "add" }
     }
+    if (-not $pkgManager -and (Get-Command "npm" -ErrorAction SilentlyContinue)) {
+        $pkgManager = "npm"
+        $addCmd = "install"
+    }
 
+    # If npm is still not found, check if user needs to install Node.js
+    if (-not $pkgManager) {
+        Write-Err "Node.js / npm is not installed or not found on your system."
+        Write-Host "`nTo resolve this:" -ForegroundColor Yellow
+        Write-Host "1. Download and install Node.js (LTS) from: https://nodejs.org/" -ForegroundColor White
+        Write-Host "   OR run in terminal: winget install OpenJS.NodeJS.LTS" -ForegroundColor Cyan
+        Write-Host "2. Reopen your PowerShell terminal and run this script again.`n" -ForegroundColor White
+        exit 1
+    }
+
+    Write-Step "Detecting package manager..."
     Write-Success "Using package manager: $pkgManager"
 
     # 3. Ensure base project dependencies are installed if node_modules is missing
@@ -67,7 +114,7 @@ try {
         Write-Step "node_modules missing. Installing base project dependencies..."
         & $pkgManager install
         if ($LASTEXITCODE -ne 0) {
-            Write-Warn "Base install returned a non-zero code. Proceeding with package installation..."
+            Write-Warn "Base install returned a non-zero exit code. Continuing with motion packages..."
         } else {
             Write-Success "Base dependencies installed."
         }
@@ -122,7 +169,7 @@ export function cn(...inputs: ClassValue[]) {
         Write-Success "Created $targetFile with 'cn()' helper."
     }
 
-    Write-Host "`nAll set! You can now run 'npm run dev' and use Framer Motion & Lucide icons." -ForegroundColor Green
+    Write-Host "`nAll set! You can now run 'npm run dev' to start the project." -ForegroundColor Green
 } catch {
     Write-Err "An error occurred during installation: $_"
     exit 1
