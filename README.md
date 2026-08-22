@@ -10,6 +10,12 @@ A modern, responsive Bento Grid UI built with Next.js (App Router), Tailwind CSS
 
 ---
 
+## 📸 Preview
+
+![Bento Grid UI](public/bento-grid-preview.png)
+
+---
+
 ## ✨ Features
 
 - 📱 **Responsive Grid**: Adaptive Bento Grid layout spanning 1 column on mobile to 4 columns on desktop.
@@ -24,6 +30,8 @@ A modern, responsive Bento Grid UI built with Next.js (App Router), Tailwind CSS
 
 ```
 ├── install-motion.ps1         # Automated PowerShell setup script
+├── public/
+│   └── bento-grid-preview.png # Live UI preview screenshot
 ├── src/
 │   ├── app/
 │   │   ├── globals.css        # Tailwind styling & themes
@@ -49,7 +57,7 @@ Run the included setup script to install Framer Motion and Lucide React icons:
 
 ### 2. Manual Installation
 ```bash
-npm install framer-motion lucide-react clsx tailwind-merge
+npm install
 ```
 
 ### 3. Run Development Server
