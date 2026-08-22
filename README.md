@@ -21,8 +21,23 @@ A modern, responsive Bento Grid UI built with Next.js (App Router), Tailwind CSS
 - 📱 **Responsive Grid**: Adaptive Bento Grid layout spanning 1 column on mobile to 4 columns on desktop.
 - 🎨 **Glassmorphic Aesthetic**: Dark-themed UI with subtle borders, dynamic spotlight gradient hover effects, and glowing indicators.
 - 🚀 **Framer Motion Micro-Interactions**: Smooth card lift, spring-animated icons, animated telemetry bars, and interactive cards.
-- 🛠️ **Automated Setup Script**: Includes `install-motion.ps1` for one-command installation of all required dependencies.
+- 🛠️ **Automated Setup Script**: Includes `install-motion.ps1` and `install-motion.sh` for one-command installation.
 - 🔒 **Type-Safe**: Full TypeScript interfaces for clean composability.
+
+---
+
+## 📋 Prerequisites
+
+Before running the project, make sure **Node.js** (LTS version 18+ or 20+) is installed on your computer:
+
+- **Windows**: Download from [nodejs.org](https://nodejs.org/) or run in terminal:
+  ```powershell
+  winget install OpenJS.NodeJS.LTS
+  ```
+- **macOS**: `brew install node`
+- **Linux**: `sudo apt install nodejs npm`
+
+*(Note: Always restart your terminal after installing Node.js so the `npm` and `node` commands become active).*
 
 ---
 
@@ -30,6 +45,7 @@ A modern, responsive Bento Grid UI built with Next.js (App Router), Tailwind CSS
 
 ```
 ├── install-motion.ps1         # Automated PowerShell setup script
+├── install-motion.sh          # Automated Bash setup script
 ├── public/
 │   └── bento-grid-preview.png # Live UI preview screenshot
 ├── src/
@@ -51,16 +67,16 @@ A modern, responsive Bento Grid UI built with Next.js (App Router), Tailwind CSS
 
 ### 1. Automated Setup
 
-**Option A: Run with PowerShell (Windows)**
+**Windows (PowerShell):**
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install-motion.ps1
 ```
-*Or via npm script:*
+*Or via npm shortcut:*
 ```bash
 npm run setup
 ```
 
-**Option B: Run with Bash (macOS / Linux / Git Bash)**
+**macOS / Linux / Git Bash:**
 ```bash
 bash install-motion.sh
 ```
@@ -76,6 +92,22 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) (or `http://localhost:3001` if port 3000 is occupied) in your browser.
+
+---
+
+## 🔧 Troubleshooting
+
+#### 1. `'npm' is not recognized as a cmdlet, function, script file, or operable program`
+- **Cause**: Node.js is not installed or the terminal has not been restarted after installation.
+- **Fix**: Install Node.js from [nodejs.org](https://nodejs.org/), then **close and reopen** your PowerShell window.
+
+#### 2. `cannot be loaded because running scripts is disabled on this system`
+- **Cause**: Windows PowerShell security policy blocks `.ps1` execution by default.
+- **Fix**: Use the bypass flag:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File .\install-motion.ps1
+  ```
+  Or run `npm run setup`.
 
 ---
 
