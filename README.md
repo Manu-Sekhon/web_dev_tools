@@ -101,13 +101,16 @@ Open [http://localhost:3000](http://localhost:3000) (or `http://localhost:3001` 
 - **Cause**: Node.js is not installed or the terminal has not been restarted after installation.
 - **Fix**: Install Node.js from [nodejs.org](https://nodejs.org/), then **close and reopen** your PowerShell window.
 
-#### 2. `cannot be loaded because running scripts is disabled on this system`
-- **Cause**: Windows PowerShell security policy blocks `.ps1` execution by default.
-- **Fix**: Use the bypass flag:
+#### 2. `npm : File ...\npm.ps1 cannot be loaded because running scripts is disabled on this system`
+- **Cause**: Windows PowerShell restricts running script wrappers like `npm.ps1` by default.
+- **Fix (Permanent - Recommended)**: Run this once in PowerShell:
   ```powershell
-  powershell -ExecutionPolicy Bypass -File .\install-motion.ps1
+  Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
   ```
-  Or run `npm run setup`.
+- **Alternative Fix**: Run using `.cmd` directly:
+  ```powershell
+  npm.cmd run dev
+  ```
 
 ---
 
